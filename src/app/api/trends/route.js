@@ -16,46 +16,49 @@ LINHAS EDITORIAIS:
 
 TOM: Opinião clara. Direta. Reflexiva. Nunca paternalista. Conecta mundos diferentes.
 
-NAO PERTENCE: empreendedorismo feminino como centro, motivacional genérico, tutorial sem perspectiva, política partidária, fitness, emagrecimento, positividade tóxica.`
+NÃO PERTENCE: empreendedorismo feminino como centro, motivacional genérico, tutorial sem perspectiva, política partidária, fitness, emagrecimento, positividade tóxica.`
 
-const SEARCH_PROMPT = `Pesquise na internet o que está sendo muito falado e pesquisado nas últimas 4 semanas (fevereiro e março de 2026) no Brasil. Busque em todas essas fontes:
+const SEARCH_PROMPT = `Hoje é 31 de março de 2026. Faça buscas específicas para encontrar o que está VIRALIZANDO E SENDO MUITO DISCUTIDO nos últimos 30 dias — entre 1 de março e 31 de março de 2026.
 
-- Google Trends Brasil: termos mais pesquisados recentemente
-- TikTok Brasil: vídeos virais, audios em alta, discussões nos comentários
-- YouTube Brasil: vídeos com muitas visualizações recentes
-- Instagram: reels virais, assuntos gerando debate
-- Noticiário de tech: lançamentos, polêmicas, debates sobre IA, redes sociais, mercado digital
-- Noticiário brasileiro geral: pautas quentes, casos envolvendo influenciadores e marcas
-- Literatura: livros mais vendidos e discutidos agora
-- Comportamento e cultura: tendências de comportamento, paradoxos sociais em discussão
+Faça buscas em:
+1. "tiktok viral brasil 2026" — o que está viralizando no TikTok brasileiro agora
+2. "trending brasil instagram 2026" — reels e assuntos em alta no Instagram agora
+3. "youtube viral brasil 2026" — vídeos bombando no YouTube Brasil agora
+4. "google trends brasil mais buscado 2026" — termos mais buscados no Brasil agora
+5. "noticias comportamento brasil 2026" — comportamento, cultura, polêmicas dos últimos 30 dias
+6. "livros mais vendidos brasil 2026" — literatura em alta agora
+7. "inteligencia artificial debate 2026" — o que está gerando debate sobre IA agora
+8. "influencer polêmica brasil 2026" — casos recentes de influenciadores
 
-Para cada tema, analise como pode virar OPINIÃO E POSICIONAMENTO para a Hellena.
+REGRA CRÍTICA: Só inclua temas dos últimos 30 dias. Nada anterior a 1 de março de 2026. Se não encontrar data clara e recente, não inclua.
 
-Retorne EXATAMENTE neste formato para cada tema:
+Para cada tema encontrado, analise como pode virar OPINIÃO E POSICIONAMENTO para a Hellena — não conteúdo jornalístico, mas reflexão com perspectiva própria.
+
+Retorne EXATAMENTE neste formato:
 
 **[TÍTULO DO TEMA]**
 Fit: [Alta / Média / Baixa]
-Quando: [quando surgiu ou está em alta]
-Fontes: [onde apareceu — ex: "Google Trends, TikTok, G1"]
-Ângulo: [como a Hellena transformaria isso em opinião — específico, com a voz dela, 2-3 frases]
+Quando: [data específica de março 2026]
+Fontes: [plataformas onde está viralizando — TikTok, Instagram, YouTube, Google Trends, etc]
+Ângulo: [como a Hellena transformaria em opinião — 2-3 frases com a voz dela, específico]
 Formato: [Reel / Vídeo Longo / Carrossel]
 Timing: [Urgente / Evergreen / Evitar]
 Provocações: [pergunta 1] / [pergunta 2] / [pergunta 3]
 
 ---
 
-Retorne entre 6 e 8 temas variados e RECENTES — últimas 4 semanas.`
+Retorne entre 6 e 8 temas. TODOS devem ser de março de 2026.`
 
-const CUSTOM_PROMPT = (topic) => `Pesquise na internet sobre: "${topic}" — o que está sendo discutido agora no Google Trends, TikTok, YouTube, Instagram e noticiário brasileiro. Quando surgiu e onde está sendo falado.
+const CUSTOM_PROMPT = (topic) => `Hoje é 31 de março de 2026. Pesquise sobre: "${topic}" — o que está sendo discutido nos últimos 30 dias no TikTok, Instagram, YouTube, Google Trends e noticiário. Só traga informações de março de 2026.
 
-Depois analise como a Hellena Aguiar transformaria isso em opinião com perspectiva própria.
+Analise como a Hellena Aguiar transformaria isso em opinião com perspectiva própria.
 
 Retorne:
 
 **[TÍTULO DO TEMA]**
 Fit: [Alta / Média / Baixa]
-Quando: [quando surgiu ou está em alta]
-Fontes: [onde apareceu]
+Quando: [data específica de março 2026]
+Fontes: [plataformas onde apareceu]
 Ângulo: [como a Hellena transformaria em opinião — 2-3 frases com a voz dela]
 Formato: [Reel / Vídeo Longo / Carrossel]
 Timing: [Urgente / Evergreen / Evitar]
@@ -63,7 +66,7 @@ Provocações: [pergunta 1] / [pergunta 2] / [pergunta 3]`
 
 export async function POST(req) {
   const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) return Response.json({ error: 'ANTHROPIC_API_KEY nao configurada.' }, { status: 500 })
+  if (!apiKey) return Response.json({ error: 'ANTHROPIC_API_KEY não configurada.' }, { status: 500 })
 
   const { mode, topic } = await req.json()
   const userMsg = mode === 'custom' ? CUSTOM_PROMPT(topic) : SEARCH_PROMPT

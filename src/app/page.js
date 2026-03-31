@@ -483,20 +483,20 @@ function ReverseTab() {
   return (
     <div>
       <div style={{ background: C.cream, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 6, padding: '20px', marginBottom: 24 }}>
-        <MiniLabel>Cole a URL do vídeo de referência (YouTube)</MiniLabel>
+        <MiniLabel>Cole a URL do vídeo de referência</MiniLabel>
         <div style={{ display: 'flex', gap: 8 }}>
           <TextInput
             value={url}
             onChange={e => setUrl(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && analisar()}
-            placeholder="https://youtube.com/watch?v=..."
+            placeholder="YouTube, ou link público do Google Drive..."
           />
           <PrimaryBtn onClick={analisar} disabled={loading}>
             {loading ? 'Analisando...' : 'Analisar'}
           </PrimaryBtn>
         </div>
         <p style={{ fontSize: 11, color: C.amberDim, margin: '8px 0 0', fontFamily: F }}>
-          Funciona com vídeos públicos do YouTube
+          YouTube (automático) · Instagram/TikTok: baixe o vídeo, suba no Drive com link público e cole o link aqui
         </p>
       </div>
 
@@ -505,9 +505,9 @@ function ReverseTab() {
       {!result && !loading && (
         <div style={{ background: C.cream, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 6, padding: '40px 24px', textAlign: 'center' }}>
           <p style={{ color: C.amberDim, fontSize: 13, lineHeight: 1.8, fontFamily: F }}>
-            Cole o link de um vídeo do YouTube que performou fora da curva.<br />
-            O agente transcreve, disseca a estrutura e gera ideias de<br />
-            <strong style={{ color: C.leather }}>Reel</strong>, <strong style={{ color: C.leather }}>Vídeo Longo</strong> e <strong style={{ color: C.leather }}>Carrossel</strong> com a sua voz.
+            Cole o link de um vídeo do YouTube — ou baixe um vídeo do Instagram/TikTok,<br />
+            suba no Google Drive com link público e cole o link aqui.<br />
+            O agente transcreve e gera ideias de <strong style={{ color: C.leather }}>Reel</strong>, <strong style={{ color: C.leather }}>Vídeo Longo</strong> e <strong style={{ color: C.leather }}>Carrossel</strong>.
           </p>
         </div>
       )}
