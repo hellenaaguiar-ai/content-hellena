@@ -6,48 +6,36 @@ const C = {
   rust: '#8B4A2A', amber: '#A67C3D', amberDim: '#7A5C2E', sage: '#4A5740',
   parchment: '#EDE0C4', parchDark: '#C8B896', aged: '#D4C4A0',
 }
-
 const NOISE = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E")`
-
 const F = "Raleway, sans-serif"
 
-// ─── PARSER ROBUSTO ───────────────────────────────────────────────────────────
+// ─── PARSER ───────────────────────────────────────────────────────────────────
 function parseTrends(raw) {
   if (!raw) return []
   const items = []
-
-  // Divide por blocos — qualquer linha que começa com **
   const blocks = raw.split(/(?=\n\*\*|\r\n\*\*)/).filter(b => b.includes('**'))
-
   for (const block of blocks) {
-    // Título: qualquer coisa entre **
     const titleMatch = block.match(/\*\*([^*]+)\*\*/)
     if (!titleMatch) continue
     const title = titleMatch[1].trim()
-
-    // Fit — aceita variações
     const fitRaw = block.match(/Fit:\s*([^\n\r]+)/i)?.[1]?.trim() || ''
-    const fit = fitRaw.includes('Alta') ? 'Alta' : fitRaw.includes('dia') ? 'Média' : fitRaw.includes('Baixa') ? 'Baixa' : 'Média'
-
-    // Outros campos
+    const fit = fitRaw.toLowerCase().includes('alta') ? 'Alta'
+      : fitRaw.toLowerCase().includes('dia') ? 'Média'
+      : fitRaw.toLowerCase().includes('baixa') ? 'Baixa' : 'Média'
     const quando = block.match(/Quando:\s*([^\n\r]+)/i)?.[1]?.trim() || ''
     const fontes = block.match(/Fontes:\s*([^\n\r]+)/i)?.[1]?.trim() || ''
-    const angulo = block.match(/[Âa]ngulo:\s*([^\n\r]+(?:\n(?![A-ZÂa])[^\n\r]+)*)/i)?.[1]?.replace(/\n/g, ' ').trim() || ''
+    const angulo = block.match(/[Âa]ngulo:\s*([\s\S]+?)(?=\nFormato:|---|\*\*|$)/i)?.[1]?.replace(/\n/g, ' ').trim() || ''
     const formato = block.match(/Formato:\s*([^\n\r]+)/i)?.[1]?.trim() || ''
     const timing = block.match(/Timing:\s*([^\n\r]+)/i)?.[1]?.trim() || ''
-
-    // Provocações — separadas por / ou por linhas
-    const provRaw = block.match(/Provoca[çc][oõ]es:\s*([^\n\r]+(?:\n(?![A-ZÂa])[^\n\r]+)*)/i)?.[1]?.trim() || ''
+    const provRaw = block.match(/Provoca[çc][oõ]es:\s*([\s\S]+?)(?=\n---|\n\*\*|$)/i)?.[1]?.trim() || ''
     const provocacoes = provRaw
       .split(/\/|\n[-–•]\s*|\n\d+\.\s*/)
       .map(p => p.trim())
       .filter(p => p.length > 8)
-
     if (title.length > 2) {
       items.push({ title, fit, quando, fontes, angulo, formato, timing, provocacoes })
     }
   }
-
   return items
 }
 
@@ -92,19 +80,7 @@ function parseReverse(raw) {
   }
 }
 
-// ─── UI ATOMS ─────────────────────────────────────────────────────────────────
-function Label({ children }) {
-  return <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: C.amberDim, fontFamily: F, marginBottom: 10 }}>{children}</div>
-}
-
-function Card({ children, bg, style = {} }) {
-  return (
-    <div style={{ background: bg || C.cream, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 4, padding: '20px 22px', ...style }}>
-      {children}
-    </div>
-  )
-}
-
+// ─── ATOMS ────────────────────────────────────────────────────────────────────
 function FitBadge({ fit }) {
   const map = { Alta: [C.sage, C.cream], Média: [C.amberDim, C.cream], Baixa: [C.aged, C.espresso] }
   const [bg, color] = map[fit] || [C.amberDim, C.cream]
@@ -116,7 +92,7 @@ function FitBadge({ fit }) {
 }
 
 function Tag({ children }) {
-  return <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 3, background: C.parchDark, color: C.espresso, fontFamily: F, letterSpacing: '0.06em' }}>{children}</span>
+  return <span style={{ fontSize: 10, padding: '3px 9px', borderRadius: 3, background: C.parchDark, color: C.espresso, fontFamily: F, letterSpacing: '0.06em', fontWeight: 600 }}>{children}</span>
 }
 
 function PrimaryBtn({ onClick, disabled, children }) {
@@ -137,7 +113,7 @@ function GhostBtn({ onClick, disabled, children }) {
 
 function FilterBtn({ active, onClick, children }) {
   return (
-    <button onClick={onClick} style={{ background: active ? C.espresso : 'transparent', color: active ? C.cream : C.amberDim, border: `1.5px solid ${active ? C.espresso : C.parchDark}`, borderRadius: 4, padding: '7px 16px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F, letterSpacing: '0.08em', textTransform: 'uppercase', transition: 'all .15s' }}>
+    <button onClick={onClick} style={{ background: active ? C.espresso : 'transparent', color: active ? C.cream : C.amberDim, border: `1.5px solid ${active ? C.espresso : C.parchDark}`, borderRadius: 4, padding: '7px 14px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: F, letterSpacing: '0.08em', textTransform: 'uppercase', transition: 'all .15s' }}>
       {children}
     </button>
   )
@@ -150,50 +126,145 @@ function TextInput({ value, onChange, onKeyDown, placeholder }) {
   )
 }
 
+function MiniLabel({ children }) {
+  return <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: C.amberDim, fontFamily: F, marginBottom: 6 }}>{children}</div>
+}
+
 // ─── TREND CARD ───────────────────────────────────────────────────────────────
 function TrendCard({ item }) {
   const [open, setOpen] = useState(false)
+  const [openExplorar, setOpenExplorar] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(null)
+  const [erro, setErro] = useState('')
+
+  async function enviarClickUp() {
+    setSending(true)
+    setErro('')
+    try {
+      const desc = `Ângulo:\n${item.angulo}\n\nFormato: ${item.formato}\nTiming: ${item.timing}\n\nProvcações:\n${item.provocacoes.join('\n')}\n\nFontes: ${item.fontes}\nQuando: ${item.quando}`
+      const res = await fetch('/api/clickup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: item.title, description: desc, format: item.formato || 'Conteúdo' })
+      })
+      const data = await res.json()
+      if (data.url) setSent(data.url)
+      else setErro(data.error || 'Erro ao criar tarefa.')
+    } catch (e) {
+      setErro('Erro de conexão.')
+    }
+    setSending(false)
+  }
+
+  const timingUrgente = item.timing?.toLowerCase().includes('urgente')
 
   return (
-    <Card>
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, lineHeight: 1.4, fontFamily: F }}>{item.title}</div>
-        <FitBadge fit={item.fit} />
-      </div>
+    <div style={{ border: `1px solid ${C.aged}`, borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>
 
-      {(item.quando || item.fontes) && (
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 10 }}>
-          {item.quando && <span style={{ fontSize: 11, color: C.amberDim, fontFamily: F }}>📅 {item.quando}</span>}
-          {item.fontes && <span style={{ fontSize: 11, color: C.amberDim, fontFamily: F }}>🔍 {item.fontes}</span>}
+      {/* Toggle principal — título + fit */}
+      <button
+        onClick={() => setOpen(!open)}
+        style={{ width: '100%', background: open ? C.parchment : C.cream, backgroundImage: NOISE, border: 'none', padding: '16px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, textAlign: 'left' }}
+      >
+        <span style={{ fontSize: 14, fontWeight: 700, color: C.ink, fontFamily: F, lineHeight: 1.3, flex: 1 }}>{item.title}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <FitBadge fit={item.fit} />
+          <span style={{ fontSize: 12, color: C.amberDim }}>{open ? '▲' : '▼'}</span>
         </div>
-      )}
+      </button>
 
-      {item.angulo && <p style={{ fontSize: 13, color: C.leather, lineHeight: 1.7, margin: '0 0 12px', fontFamily: F }}>{item.angulo}</p>}
+      {/* Conteúdo interno */}
+      {open && (
+        <div style={{ background: C.cream, backgroundImage: NOISE, borderTop: `1px solid ${C.aged}`, padding: '16px 20px' }}>
 
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: item.provocacoes?.length ? 10 : 0 }}>
-        {item.formato && <Tag>{item.formato}</Tag>}
-        {item.timing && <Tag>{item.timing}</Tag>}
-      </div>
+          {/* Data + Fontes + Timing */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+            {item.quando && <Tag>📅 {item.quando}</Tag>}
+            {item.timing && (
+              <Tag>{timingUrgente ? '🔥 ' : ''}{item.timing}</Tag>
+            )}
+          </div>
 
-      {item.provocacoes?.length > 0 && (
-        <>
-          <button onClick={() => setOpen(!open)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 11, color: C.amberDim, fontFamily: F, letterSpacing: '0.08em', padding: '6px 0', textTransform: 'uppercase', fontWeight: 600 }}>
-            {open ? '▲ Fechar provocações' : '▼ Ver provocações'}
-          </button>
-          {open && (
-            <div style={{ marginTop: 10, background: C.parchment, backgroundImage: NOISE, borderLeft: `3px solid ${C.amber}`, borderRadius: '0 3px 3px 0', padding: '12px 16px' }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: C.amberDim, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10, fontFamily: F }}>Para você pensar e formar opinião</div>
-              {item.provocacoes.map((p, i) => (
-                <div key={i} style={{ display: 'flex', gap: 10, marginBottom: i < item.provocacoes.length - 1 ? 10 : 0 }}>
-                  <span style={{ color: C.amber, fontWeight: 700, fontFamily: F, flexShrink: 0 }}>—</span>
-                  <p style={{ fontSize: 13, color: C.leather, lineHeight: 1.6, margin: 0, fontFamily: F, fontStyle: 'italic' }}>{p}</p>
-                </div>
-              ))}
+          {item.fontes && (
+            <div style={{ marginBottom: 12 }}>
+              <MiniLabel>Fontes</MiniLabel>
+              <p style={{ fontSize: 12, color: C.leather, lineHeight: 1.6, margin: 0, fontFamily: F }}>{item.fontes}</p>
             </div>
           )}
-        </>
+
+          {/* Toggle "Como explorar" */}
+          <div style={{ border: `1px solid ${C.parchDark}`, borderRadius: 4, overflow: 'hidden', marginTop: 4 }}>
+            <button
+              onClick={() => setOpenExplorar(!openExplorar)}
+              style={{ width: '100%', background: openExplorar ? C.parchment : 'transparent', border: 'none', padding: '11px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', textAlign: 'left' }}
+            >
+              <span style={{ fontSize: 11, fontWeight: 700, color: C.amberDim, fontFamily: F, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Como explorar</span>
+              <span style={{ fontSize: 12, color: C.amberDim }}>{openExplorar ? '▲' : '▼'}</span>
+            </button>
+
+            {openExplorar && (
+              <div style={{ background: C.parchment, backgroundImage: NOISE, borderTop: `1px solid ${C.parchDark}`, padding: '16px' }}>
+
+                {/* Ângulo */}
+                {item.angulo && (
+                  <div style={{ marginBottom: 14 }}>
+                    <MiniLabel>Ângulo</MiniLabel>
+                    <p style={{ fontSize: 13, color: C.leather, lineHeight: 1.7, margin: 0, fontFamily: F }}>{item.angulo}</p>
+                  </div>
+                )}
+
+                {/* Formato */}
+                {item.formato && (
+                  <div style={{ marginBottom: 14 }}>
+                    <MiniLabel>Formato</MiniLabel>
+                    <Tag>{item.formato}</Tag>
+                  </div>
+                )}
+
+                {/* Timing */}
+                {item.timing && (
+                  <div style={{ marginBottom: 14 }}>
+                    <MiniLabel>Timing</MiniLabel>
+                    <Tag>{item.timing}</Tag>
+                  </div>
+                )}
+
+                {/* Provocações */}
+                {item.provocacoes?.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <MiniLabel>Provocações</MiniLabel>
+                    {item.provocacoes.map((p, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 8 }}>
+                        <span style={{ color: C.amber, fontWeight: 700, fontFamily: F, flexShrink: 0 }}>—</span>
+                        <p style={{ fontSize: 13, color: C.leather, lineHeight: 1.6, margin: 0, fontFamily: F, fontStyle: 'italic' }}>{p}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Botão ClickUp — SÓ aqui dentro */}
+                <div style={{ borderTop: `1px solid ${C.parchDark}`, paddingTop: 14 }}>
+                  {sent
+                    ? <a href={sent} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: C.sage, fontWeight: 700, textDecoration: 'none', fontFamily: F, letterSpacing: '0.05em' }}>✓ Abrir no ClickUp →</a>
+                    : (
+                      <button
+                        onClick={enviarClickUp}
+                        disabled={sending}
+                        style={{ background: C.espresso, color: C.cream, border: 'none', borderRadius: 4, padding: '8px 16px', fontSize: 11, fontWeight: 700, cursor: sending ? 'not-allowed' : 'pointer', fontFamily: F, letterSpacing: '0.1em', textTransform: 'uppercase', opacity: sending ? 0.5 : 1 }}
+                      >
+                        {sending ? 'Enviando...' : 'Enviar pro ClickUp'}
+                      </button>
+                    )
+                  }
+                  {erro && <p style={{ fontSize: 11, color: C.rust, margin: '8px 0 0', fontFamily: F }}>{erro}</p>}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
-    </Card>
+    </div>
   )
 }
 
@@ -209,14 +280,17 @@ function IdeiaCard({ format, idea, url }) {
     carrossel: { label: 'Carrossel', bg: C.amberDim, color: C.cream },
   }
   const { label, bg, color } = map[format]
-
   const fmtMap = { reel: 'REEL', video: 'VÍDEO LONGO', carrossel: 'CARROSSEL' }
 
   async function enviar() {
     setSending(true)
     try {
       const desc = `Abertura:\n"${idea.abertura}"\n\nEstrutura:\n${idea.estrutura}\n\nPor que funciona:\n${idea.porque}\n\nReferência: ${url}`
-      const res = await fetch('/api/clickup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: idea.tema, description: desc, format: fmtMap[format] }) })
+      const res = await fetch('/api/clickup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: idea.tema, description: desc, format: fmtMap[format] })
+      })
       const data = await res.json()
       if (data.url) setSentUrl(data.url)
     } catch (e) {}
@@ -224,11 +298,11 @@ function IdeiaCard({ format, idea, url }) {
   }
 
   return (
-    <Card>
+    <div style={{ background: C.cream, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 6, padding: '18px 20px', marginBottom: 8 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, gap: 12, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 12px', borderRadius: 3, background: bg, color, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: F }}>{label}</span>
         {sentUrl
-          ? <a href={sentUrl} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: C.sage, fontWeight: 700, textDecoration: 'none', fontFamily: F }}>Abrir no ClickUp →</a>
+          ? <a href={sentUrl} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: C.sage, fontWeight: 700, textDecoration: 'none', fontFamily: F }}>✓ Abrir no ClickUp →</a>
           : <button onClick={enviar} disabled={sending} style={{ fontSize: 11, color: C.amberDim, background: 'transparent', border: `1px solid ${C.parchDark}`, borderRadius: 3, padding: '5px 12px', cursor: sending ? 'not-allowed' : 'pointer', fontFamily: F, opacity: sending ? 0.5 : 1 }}>
               {sending ? 'Enviando...' : 'Enviar pro ClickUp'}
             </button>
@@ -237,20 +311,19 @@ function IdeiaCard({ format, idea, url }) {
       <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 12, lineHeight: 1.4, fontFamily: F }}>{idea.tema}</div>
       {idea.abertura && (
         <div style={{ background: C.parchment, backgroundImage: NOISE, borderLeft: `3px solid ${C.amber}`, padding: '10px 14px', marginBottom: 12, borderRadius: '0 3px 3px 0' }}>
-          <div style={{ fontSize: 9, fontWeight: 700, color: C.amberDim, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4, fontFamily: F }}>Abertura</div>
+          <MiniLabel>Abertura</MiniLabel>
           <div style={{ fontSize: 13, color: C.leather, fontStyle: 'italic', lineHeight: 1.6, fontFamily: F }}>"{idea.abertura}"</div>
         </div>
       )}
       {idea.estrutura && <p style={{ fontSize: 13, color: C.leather, lineHeight: 1.7, margin: '0 0 10px', fontFamily: F }}>{idea.estrutura}</p>}
       {idea.porque && <p style={{ fontSize: 12, color: C.amberDim, lineHeight: 1.6, margin: 0, fontFamily: F }}>{idea.porque}</p>}
-    </Card>
+    </div>
   )
 }
 
 // ─── ABA TRENDS ──────────────────────────────────────────────────────────────
 function TrendsTab() {
   const [results, setResults] = useState([])
-  const [rawDebug, setRawDebug] = useState('')
   const [filter, setFilter] = useState('todos')
   const [status, setStatus] = useState('')
   const [loadingRun, setLoadingRun] = useState(false)
@@ -259,34 +332,38 @@ function TrendsTab() {
   const timer = useRef(null)
 
   const STEPS = [
-    'Pesquisando notícias quentes do momento...',
-    'Varrendo literatura, comportamento, mercado digital...',
-    'Identificando tendências emergentes...',
+    'Varrendo notícias quentes do último mês...',
+    'Buscando o que está bombando no TikTok, YouTube e Instagram...',
+    'Checando Google Trends e tech news...',
     'Cruzando com suas linhas editoriais...',
     'Gerando ângulos de opinião e provocações...',
   ]
 
   function startSteps() {
     let i = 0; setStatus(STEPS[0])
-    timer.current = setInterval(() => { if (++i < STEPS.length) setStatus(STEPS[i]) }, 3500)
+    timer.current = setInterval(() => { if (++i < STEPS.length) setStatus(STEPS[i]) }, 4000)
   }
 
   async function buscarTrends() {
-    setLoadingRun(true); setRawDebug(''); startSteps()
+    setLoadingRun(true); startSteps()
     try {
-      const res = await fetch('/api/trends', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'search' }) })
+      const res = await fetch('/api/trends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'search' })
+      })
       const data = await res.json()
       clearInterval(timer.current)
       if (data.error) { setStatus('Erro: ' + data.error); setLoadingRun(false); return }
       const parsed = parseTrends(data.text)
-      if (parsed.length === 0) {
-        setRawDebug(data.text?.slice(0, 500) || 'Resposta vazia.')
-        setStatus('Não foi possível estruturar os resultados.')
-      } else {
-        setResults(parsed)
-        setStatus(`${parsed.length} temas encontrados · ${parsed.filter(r => r.fit === 'Alta').length} com fit alto`)
-      }
-    } catch (e) { clearInterval(timer.current); setStatus('Erro de conexão. Tente novamente.') }
+      setResults(parsed)
+      setStatus(parsed.length
+        ? `${parsed.length} temas encontrados · ${parsed.filter(r => r.fit === 'Alta').length} com fit alto`
+        : 'Tente novamente.')
+    } catch (e) {
+      clearInterval(timer.current)
+      setStatus('Erro de conexão. Tente novamente.')
+    }
     setLoadingRun(false)
   }
 
@@ -294,19 +371,20 @@ function TrendsTab() {
     if (!topic.trim()) return
     setLoadingCustom(true); setStatus(`Pesquisando: "${topic}"...`)
     try {
-      const res = await fetch('/api/trends', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'custom', topic }) })
+      const res = await fetch('/api/trends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'custom', topic })
+      })
       const data = await res.json()
       if (data.error) { setStatus('Erro: ' + data.error); setLoadingCustom(false); return }
       const parsed = parseTrends(data.text)
-      if (parsed.length > 0) {
-        setResults(prev => [...parsed, ...prev])
-        setStatus(`Tema analisado · Fit: ${parsed[0]?.fit}`)
-      } else {
-        setRawDebug(data.text?.slice(0, 500) || '')
-        setStatus('Não foi possível estruturar. Veja resposta abaixo.')
-      }
+      setResults(prev => [...parsed, ...prev])
+      setStatus(parsed.length ? `Tema analisado · Fit: ${parsed[0]?.fit}` : 'Concluído.')
       setTopic('')
-    } catch (e) { setStatus('Erro de conexão. Tente novamente.') }
+    } catch (e) {
+      setStatus('Erro de conexão. Tente novamente.')
+    }
     setLoadingCustom(false)
   }
 
@@ -332,38 +410,37 @@ function TrendsTab() {
 
       {status && <p style={{ fontSize: 12, color: C.amberDim, marginBottom: 16, fontFamily: F }}>{status}</p>}
 
-      {rawDebug && (
-        <Card style={{ marginBottom: 16 }}>
-          <Label>Resposta bruta do agente</Label>
-          <pre style={{ fontSize: 11, color: C.leather, fontFamily: 'monospace', whiteSpace: 'pre-wrap', margin: 0 }}>{rawDebug}</pre>
-        </Card>
-      )}
+      <div style={{ height: 1, background: C.aged, margin: '16px 0 20px' }} />
 
-      <div style={{ height: 1, background: C.aged, margin: '20px 0' }} />
-
-      <Label>Ou analise um tema específico</Label>
+      <MiniLabel>Ou analise um tema específico</MiniLabel>
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        <TextInput value={topic} onChange={e => setTopic(e.target.value)} onKeyDown={e => e.key === 'Enter' && analisarTema()} placeholder="Ex: ética no mercado de influência, livros em alta, IA substituindo trabalho criativo..." />
-        <GhostBtn onClick={analisarTema} disabled={loadingCustom}>{loadingCustom ? 'Analisando...' : 'Analisar'}</GhostBtn>
+        <TextInput
+          value={topic}
+          onChange={e => setTopic(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && analisarTema()}
+          placeholder="Ex: CPI das bets, ética de influenciadores, livros em alta..."
+        />
+        <GhostBtn onClick={analisarTema} disabled={loadingCustom}>
+          {loadingCustom ? 'Analisando...' : 'Analisar'}
+        </GhostBtn>
       </div>
 
-      {filtered.length === 0 && !rawDebug ? (
-        <Card style={{ textAlign: 'center', padding: '40px 24px' }}>
+      {filtered.length === 0 ? (
+        <div style={{ background: C.cream, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 6, padding: '40px 24px', textAlign: 'center' }}>
           <p style={{ color: C.amberDim, fontSize: 13, lineHeight: 1.8, fontFamily: F }}>
-            Clique em "Buscar Trends Agora" e o agente vai pesquisar autonomamente<br />
-            notícias quentes, comportamento e tendências — e cruzar com suas linhas editoriais.
+            Clique em "Buscar Trends Agora" e o agente vai pesquisar<br />
+            o que está sendo falado agora no TikTok, YouTube, Instagram,<br />
+            Google Trends e noticiário — e cruzar com suas linhas editoriais.
           </p>
-        </Card>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {filtered.map((item, i) => <TrendCard key={i} item={item} />)}
         </div>
+      ) : (
+        <div>{filtered.map((item, i) => <TrendCard key={i} item={item} />)}</div>
       )}
     </div>
   )
 }
 
-// ─── ABA ENGENHARIA REVERSA ───────────────────────────────────────────────────
+// ─── ABA REVERSE ─────────────────────────────────────────────────────────────
 function ReverseTab() {
   const [url, setUrl] = useState('')
   const [loading, setLoading] = useState(false)
@@ -372,76 +449,90 @@ function ReverseTab() {
   const timer = useRef(null)
 
   const STEPS = [
-    'Buscando informações do vídeo...',
-    'Analisando gancho e estrutura narrativa...',
-    'Identificando gatilhos emocionais...',
-    'Gerando ideias com a sua voz e opinião...',
+    'Baixando áudio do vídeo...',
+    'Transcrevendo com Whisper...',
+    'Analisando estrutura narrativa...',
+    'Gerando ideias com a sua voz...',
   ]
 
   function startSteps() {
     let i = 0; setStatus(STEPS[0])
-    timer.current = setInterval(() => { if (++i < STEPS.length) setStatus(STEPS[i]) }, 4500)
+    timer.current = setInterval(() => { if (++i < STEPS.length) setStatus(STEPS[i]) }, 5000)
   }
 
   async function analisar() {
     if (!url.trim()) return
     setLoading(true); setResult(null); startSteps()
     try {
-      const res = await fetch('/api/reverse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) })
+      const res = await fetch('/api/reverse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      })
       const data = await res.json()
       clearInterval(timer.current)
       if (data.error) { setStatus('Erro: ' + data.error) }
       else { setResult(parseReverse(data.text)); setStatus('') }
-    } catch (e) { clearInterval(timer.current); setStatus('Erro de conexão. Tente novamente.') }
+    } catch (e) {
+      clearInterval(timer.current)
+      setStatus('Erro de conexão. Tente novamente.')
+    }
     setLoading(false)
   }
 
   return (
     <div>
-      <Card style={{ marginBottom: 24 }}>
-        <Label>Cole a URL do vídeo de referência</Label>
+      <div style={{ background: C.cream, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 6, padding: '20px', marginBottom: 24 }}>
+        <MiniLabel>Cole a URL do vídeo de referência (YouTube)</MiniLabel>
         <div style={{ display: 'flex', gap: 8 }}>
-          <TextInput value={url} onChange={e => setUrl(e.target.value)} onKeyDown={e => e.key === 'Enter' && analisar()} placeholder="https://youtube.com/watch?v=...   ou link do TikTok / Instagram" />
-          <PrimaryBtn onClick={analisar} disabled={loading}>{loading ? 'Analisando...' : 'Analisar'}</PrimaryBtn>
+          <TextInput
+            value={url}
+            onChange={e => setUrl(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && analisar()}
+            placeholder="https://youtube.com/watch?v=..."
+          />
+          <PrimaryBtn onClick={analisar} disabled={loading}>
+            {loading ? 'Analisando...' : 'Analisar'}
+          </PrimaryBtn>
         </div>
-        <p style={{ fontSize: 11, color: C.amberDim, margin: '8px 0 0', fontFamily: F }}>Funciona com YouTube, TikTok e Instagram</p>
-      </Card>
+        <p style={{ fontSize: 11, color: C.amberDim, margin: '8px 0 0', fontFamily: F }}>
+          Funciona com vídeos públicos do YouTube
+        </p>
+      </div>
 
       {status && <p style={{ fontSize: 12, color: C.amberDim, marginBottom: 16, fontFamily: F }}>{status}</p>}
 
       {!result && !loading && (
-        <Card style={{ textAlign: 'center', padding: '40px 24px' }}>
+        <div style={{ background: C.cream, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 6, padding: '40px 24px', textAlign: 'center' }}>
           <p style={{ color: C.amberDim, fontSize: 13, lineHeight: 1.8, fontFamily: F }}>
-            Cole o link de um vídeo que performou fora da curva.<br />
-            O agente disseca a estrutura e gera ideias de<br />
-            <strong style={{ color: C.leather }}>Reel</strong>, <strong style={{ color: C.leather }}>Vídeo Longo</strong> e <strong style={{ color: C.leather }}>Carrossel</strong> com a sua voz e opinião.
+            Cole o link de um vídeo do YouTube que performou fora da curva.<br />
+            O agente transcreve, disseca a estrutura e gera ideias de<br />
+            <strong style={{ color: C.leather }}>Reel</strong>, <strong style={{ color: C.leather }}>Vídeo Longo</strong> e <strong style={{ color: C.leather }}>Carrossel</strong> com a sua voz.
           </p>
-        </Card>
+        </div>
       )}
 
       {result && (
         <>
-          <Card style={{ marginBottom: 16 }}>
+          <div style={{ background: C.cream, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 6, padding: '18px 20px', marginBottom: 16 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 4, fontFamily: F }}>{result.titulo || url}</div>
             <div style={{ fontSize: 12, color: C.amberDim, fontFamily: F }}>{result.canal}{result.performance ? ` · ${result.performance}` : ''}</div>
-          </Card>
+          </div>
 
-          <Card bg={C.parchment} style={{ marginBottom: 20 }}>
-            <Label>Engenharia Reversa</Label>
+          <div style={{ background: C.parchment, backgroundImage: NOISE, border: `1px solid ${C.aged}`, borderRadius: 6, padding: '18px 20px', marginBottom: 20 }}>
+            <MiniLabel>Engenharia Reversa</MiniLabel>
             {[['Gancho (primeiros 30s)', result.gancho], ['Arco Narrativo', result.arco], ['Gatilhos Emocionais', result.gatilhos], ['Por que Funcionou', result.porque]].map(([label, value]) => value ? (
               <div key={label} style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 9, fontWeight: 700, color: C.amberDim, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4, fontFamily: F }}>{label}</div>
+                <MiniLabel>{label}</MiniLabel>
                 <p style={{ fontSize: 13, color: C.leather, lineHeight: 1.7, margin: 0, fontFamily: F }}>{value}</p>
               </div>
             ) : null)}
-          </Card>
-
-          <Label>Ideias para o seu canal</Label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {[['reel', result.ideias.reel], ['video', result.ideias.video], ['carrossel', result.ideias.carrossel]].map(([fmt, idea]) => (
-              <IdeiaCard key={fmt} format={fmt} idea={idea} url={url} />
-            ))}
           </div>
+
+          <MiniLabel>Ideias para o seu canal</MiniLabel>
+          {[['reel', result.ideias.reel], ['video', result.ideias.video], ['carrossel', result.ideias.carrossel]].map(([fmt, idea]) => (
+            <IdeiaCard key={fmt} format={fmt} idea={idea} url={url} />
+          ))}
         </>
       )}
     </div>

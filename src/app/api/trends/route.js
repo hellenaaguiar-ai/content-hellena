@@ -16,42 +16,45 @@ LINHAS EDITORIAIS:
 
 TOM: Opinião clara. Direta. Reflexiva. Nunca paternalista. Conecta mundos diferentes.
 
-NÃO PERTENCE: empreendedorismo feminino como centro, motivacional genérico, tutorial sem perspectiva, política partidária, fitness, emagrecimento, positividade tóxica.`
+NAO PERTENCE: empreendedorismo feminino como centro, motivacional genérico, tutorial sem perspectiva, política partidária, fitness, emagrecimento, positividade tóxica.`
 
-const SEARCH_PROMPT = `Pesquise na internet em três frentes:
+const SEARCH_PROMPT = `Pesquise na internet o que está sendo muito falado e pesquisado nas últimas 4 semanas (fevereiro e março de 2026) no Brasil. Busque em todas essas fontes:
 
-FRENTE 1 — NOTÍCIAS QUENTES: O que está no topo do noticiário brasileiro AGORA (março 2026)? Busque em portais de notícia, trending topics, o que está gerando debate nacional. Inclua pautas como CPIs, escândalos, casos envolvendo influenciadores e marcas.
+- Google Trends Brasil: termos mais pesquisados recentemente
+- TikTok Brasil: vídeos virais, audios em alta, discussões nos comentários
+- YouTube Brasil: vídeos com muitas visualizações recentes
+- Instagram: reels virais, assuntos gerando debate
+- Noticiário de tech: lançamentos, polêmicas, debates sobre IA, redes sociais, mercado digital
+- Noticiário brasileiro geral: pautas quentes, casos envolvendo influenciadores e marcas
+- Literatura: livros mais vendidos e discutidos agora
+- Comportamento e cultura: tendências de comportamento, paradoxos sociais em discussão
 
-FRENTE 2 — COMPORTAMENTO E CULTURA: O que está em alta em comportamento humano, literatura, cinema, arte, mercado creator, ética digital, IA?
-
-FRENTE 3 — TENDÊNCIAS EMERGENTES: O que está crescendo antes de virar mainstream? Discussões no TikTok, YouTube, podcasts.
-
-Para cada tema, analise como pode virar opinião e posicionamento para a Hellena.
+Para cada tema, analise como pode virar OPINIÃO E POSICIONAMENTO para a Hellena.
 
 Retorne EXATAMENTE neste formato para cada tema:
 
 **[TÍTULO DO TEMA]**
 Fit: [Alta / Média / Baixa]
-Quando: [data ou período aproximado]
-Fontes: [onde apareceu — portais, plataformas]
-Ângulo: [como a Hellena transformaria em opinião — 2-3 frases com a voz dela]
+Quando: [quando surgiu ou está em alta]
+Fontes: [onde apareceu — ex: "Google Trends, TikTok, G1"]
+Ângulo: [como a Hellena transformaria isso em opinião — específico, com a voz dela, 2-3 frases]
 Formato: [Reel / Vídeo Longo / Carrossel]
 Timing: [Urgente / Evergreen / Evitar]
 Provocações: [pergunta 1] / [pergunta 2] / [pergunta 3]
 
 ---
 
-Retorne entre 6 e 8 temas variados.`
+Retorne entre 6 e 8 temas variados e RECENTES — últimas 4 semanas.`
 
-const CUSTOM_PROMPT = (topic) => `Pesquise na internet sobre: "${topic}" — o que está sendo discutido agora, onde apareceu, quando surgiu.
+const CUSTOM_PROMPT = (topic) => `Pesquise na internet sobre: "${topic}" — o que está sendo discutido agora no Google Trends, TikTok, YouTube, Instagram e noticiário brasileiro. Quando surgiu e onde está sendo falado.
 
-Depois analise como a Hellena Aguiar transformaria isso em opinião e posicionamento.
+Depois analise como a Hellena Aguiar transformaria isso em opinião com perspectiva própria.
 
 Retorne:
 
 **[TÍTULO DO TEMA]**
 Fit: [Alta / Média / Baixa]
-Quando: [data ou período aproximado]
+Quando: [quando surgiu ou está em alta]
 Fontes: [onde apareceu]
 Ângulo: [como a Hellena transformaria em opinião — 2-3 frases com a voz dela]
 Formato: [Reel / Vídeo Longo / Carrossel]
@@ -60,7 +63,7 @@ Provocações: [pergunta 1] / [pergunta 2] / [pergunta 3]`
 
 export async function POST(req) {
   const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) return Response.json({ error: 'ANTHROPIC_API_KEY não configurada.' }, { status: 500 })
+  if (!apiKey) return Response.json({ error: 'ANTHROPIC_API_KEY nao configurada.' }, { status: 500 })
 
   const { mode, topic } = await req.json()
   const userMsg = mode === 'custom' ? CUSTOM_PROMPT(topic) : SEARCH_PROMPT

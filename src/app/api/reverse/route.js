@@ -1,4 +1,4 @@
-export const maxDuration = 60
+export const runtime = 'edge'
 
 const SYSTEM = `Voce e um estrategista de conteudo especializado na marca pessoal de Hellena Aguiar.
 
